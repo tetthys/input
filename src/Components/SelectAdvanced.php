@@ -2,12 +2,6 @@
 
 namespace Tetthys\Input\Components;
 
-/**
- * Options format:
- * - Simple: ['v1' => 'Label1', 'v2' => 'Label2']
- * - Optgroup: [['label'=>'G1','options'=>['a'=>'A','b'=>'B']], 'c'=>'C']
- * - Mixed allowed.
- */
 final class SelectAdvanced extends BaseInput
 {
     /** @param array<int|string,mixed> $options */
@@ -16,53 +10,38 @@ final class SelectAdvanced extends BaseInput
         parent::__construct($ctx, $name, $attrs, $default);
 
         $isMultiple = (bool)($this->attrs['multiple'] ?? false);
-
         if ($isMultiple) {
-            // Always [] when multiple
             $this->name = str_ends_with($name, '[]') ? $name : $name . '[]';
-
-            // Normalize to list<string>
-            if (!is_array($this->value)) {
-                $this->value = $this->value !== null ? [(string)$this->value] : [];
-            } else {
-                $this->value = array_map('strval', $this->value);
-            }
+            $this->value = is_array($this->value)
+                ? array_map('strval', $this->value)
+                : ($this->value !== null ? [(string)$this->value] : []);
         } else {
-            // Single-select: if array given (from pipeline/default), use only the first element
-            if (is_array($this->value)) {
-                $first = array_key_first($this->value);
-                $this->value = $first !== null ? (string)$this->value[$first] : '';
-            } else {
-                $this->value = (string)($this->value ?? '');
-            }
+            $this->value = is_array($this->value)
+                ? ((null !== ($k = array_key_first($this->value))) ? (string)$this->value[$k] : '')
+                : (string)($this->value ?? '');
         }
     }
 
     private function isSelected(string $v): bool
     {
         $isMultiple = (bool)($this->attrs['multiple'] ?? false);
-
         if ($isMultiple) {
-            /** @var list<string> $cur */
-            $cur = array_map('strval', (array)$this->value);
-            return in_array($v, $cur, true);
+            return in_array($v, array_map('strval', (array)$this->value), true);
         }
-
-        // single: $this->value normalized to string
-        /** @var string $cur */
-        $cur = (string)$this->value;
-        return $v === $cur;
+        return $v === (string)$this->value;
     }
 
     public function render(): string
     {
-        $class = trim(($this->attrs['class'] ?? '') . ($this->hasError() ? ' is-invalid' : ''));
-        $attrs = array_merge($this->attrs, ['name' => $this->name, 'class' => $class]);
+        $base = $this->attrs['class'] ?? '';
+        $err  = $this->errorClass();
+        $class = trim($base . ($err ? ' ' . $err : ''));
+
+        $attrs = array_merge($this->attrs, ['name' => $this->name, 'class' => $class ?: null]);
         $html = '<select' . $this->htmlAttrs($attrs) . ">\n";
 
         foreach ($this->options as $key => $item) {
             if (is_array($item) && array_key_exists('options', $item)) {
-                // Optgroup
                 $label = htmlspecialchars((string)($item['label'] ?? $key), ENT_QUOTES);
                 $html .= "<optgroup label=\"{$label}\">\n";
                 foreach (($item['options'] ?? []) as $val => $lab) {
@@ -81,7 +60,6 @@ final class SelectAdvanced extends BaseInput
                 $html .= "  <option value=\"{$val}\"{$sel}>{$lab}</option>\n";
             }
         }
-
         return $html . "</select>";
     }
 }

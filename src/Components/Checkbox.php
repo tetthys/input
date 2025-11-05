@@ -12,12 +12,15 @@ final class Checkbox extends BaseInput
     public function render(): string
     {
         $checked = ((string)$this->value === (string)$this->checkedValue);
-        $class = trim(($this->attrs['class'] ?? '') . ($this->hasError() ? ' is-invalid' : ''));
+        $base = $this->attrs['class'] ?? '';
+        $err  = $this->errorClass();
+        $class = trim($base . ($err ? ' ' . $err : ''));
+
         $attrs = array_merge($this->attrs, [
-            'name' => $this->name,
-            'type' => 'checkbox',
-            'value' => $this->checkedValue,
-            'class' => $class,
+            'name'    => $this->name,
+            'type'    => 'checkbox',
+            'value'   => $this->checkedValue,
+            'class'   => $class ?: null,
             'checked' => $checked,
         ]);
         return '<input' . $this->htmlAttrs($attrs) . ' />';
