@@ -12,14 +12,19 @@ final class Radio extends BaseInput
     public function render(): string
     {
         $checked = ((string)$this->value === (string)$this->radioValue);
-        $class = trim(($this->attrs['class'] ?? '') . ($this->hasError() ? ' is-invalid' : ''));
+
+        $base  = $this->attrs['class'] ?? '';
+        $err   = $this->errorClass();
+        $class = trim($base . ($err ? ' ' . $err : ''));
+
         $attrs = array_merge($this->attrs, [
-            'name' => $this->name,
-            'type' => 'radio',
-            'value' => $this->radioValue,
-            'class' => $class,
+            'name'    => $this->name,
+            'type'    => 'radio',
+            'value'   => $this->radioValue,
+            'class'   => $class ?: null,
             'checked' => $checked,
         ]);
+
         return '<input' . $this->htmlAttrs($attrs) . ' />';
     }
 }

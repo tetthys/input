@@ -6,14 +6,17 @@ final class Password extends BaseInput
 {
     public function render(): string
     {
-        $class = trim(($this->attrs['class'] ?? '') . ($this->hasError() ? ' is-invalid' : ''));
+        $base  = $this->attrs['class'] ?? '';
+        $err   = $this->errorClass();
+        $class = trim($base . ($err ? ' ' . $err : ''));
+
         $attrs = array_merge($this->attrs, [
-            'name' => $this->name,
-            'type' => 'password',
-            // For security: no value unless explicitly allowed by `prefill`.
+            'name'  => $this->name,
+            'type'  => 'password',
             'value' => ($this->attrs['prefill'] ?? false) ? (string)($this->value ?? '') : null,
-            'class' => $class,
+            'class' => $class ?: null,
         ]);
+
         return '<input' . $this->htmlAttrs($attrs) . ' />';
     }
 }
