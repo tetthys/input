@@ -32,21 +32,21 @@ abstract class BaseInput
         return $this->ctx->errors?->get($this->name) ?? [];
     }
 
-    /**
-     * Determine the CSS class to append when there are errors.
-     * Uses ctx->styler if present; otherwise returns 'is-invalid' by default.
-     */
     protected function errorClass(): ?string
     {
         if (!$this->hasError()) {
             return null;
         }
         $messages = $this->errors();
-        $fromStyler = $this->ctx->styler?->classFor($this->name, $messages);
-        if ($fromStyler !== null && $fromStyler !== '') {
-            return $fromStyler;
+
+        // If a styler is provided, use it verbatim.
+        if ($this->ctx->styler !== null) {
+            $fromStyler = $this->ctx->styler->classFor($this->name, $messages);
+            // Respect null/empty => append nothing.
+            return ($fromStyler !== null && $fromStyler !== '') ? $fromStyler : null;
         }
-        // default behavior if no styler given:
+
+        // No styler: fallback to default behavior
         return 'is-invalid';
     }
 
