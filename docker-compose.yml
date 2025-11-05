@@ -1,0 +1,15 @@
+services:
+  php:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: tetthys-input/php83:pest413
+    container_name: tetthys-pest-runner
+    working_dir: /workspace
+    environment:
+      COMPOSER_ALLOW_SUPERUSER: "1"
+      COMPOSER_ROOT_VERSION: "dev-main"
+    volumes:
+      - ./:/workspace
+    tty: true
+    stdin_open: true
