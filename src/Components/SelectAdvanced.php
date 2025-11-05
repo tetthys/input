@@ -14,18 +14,44 @@ final class SelectAdvanced extends BaseInput
     public function __construct($ctx, string $name, private readonly array $options, array $attrs = [], mixed $default = null)
     {
         parent::__construct($ctx, $name, $attrs, $default);
-        if (($this->attrs['multiple'] ?? false) && !is_array($this->value)) {
-            $this->value = $this->value !== null ? [(string)$this->value] : [];
+
+        $isMultiple = (bool)($this->attrs['multiple'] ?? false);
+
+        if ($isMultiple) {
+            // Always [] when multiple
             $this->name = str_ends_with($name, '[]') ? $name : $name . '[]';
+
+            // Normalize to list<string>
+            if (!is_array($this->value)) {
+                $this->value = $this->value !== null ? [(string)$this->value] : [];
+            } else {
+                $this->value = array_map('strval', $this->value);
+            }
+        } else {
+            // Single-select: if array given (from pipeline/default), use only the first element
+            if (is_array($this->value)) {
+                $first = array_key_first($this->value);
+                $this->value = $first !== null ? (string)$this->value[$first] : '';
+            } else {
+                $this->value = (string)($this->value ?? '');
+            }
         }
     }
 
     private function isSelected(string $v): bool
     {
-        $cur = $this->attrs['multiple'] ?? false
-            ? array_map('strval', (array)$this->value)
-            : [(string)($this->value ?? '')];
-        return in_array($v, $cur, true);
+        $isMultiple = (bool)($this->attrs['multiple'] ?? false);
+
+        if ($isMultiple) {
+            /** @var list<string> $cur */
+            $cur = array_map('strval', (array)$this->value);
+            return in_array($v, $cur, true);
+        }
+
+        // single: $this->value normalized to string
+        /** @var string $cur */
+        $cur = (string)$this->value;
+        return $v === $cur;
     }
 
     public function render(): string
