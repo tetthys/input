@@ -11,7 +11,7 @@ final class Radio extends BaseInput
 
     public function render(): string
     {
-        $checked = $this->isChecked($this->value, $this->radioValue);
+        $checked = ((string)$this->value === (string)$this->radioValue);
 
         $base  = $this->attrs['class'] ?? '';
         $err   = $this->errorClass();
@@ -26,32 +26,5 @@ final class Radio extends BaseInput
         ]);
 
         return '<input' . $this->htmlAttrs($attrs) . ' />';
-    }
-
-    /** Robust checked comparator accommodating arrays/scalars/booleans. */
-    private function isChecked(mixed $current, string $radioValue): bool
-    {
-        $want = (string) $radioValue;
-
-        if (is_array($current)) {
-            // If array, consider checked when any element matches.
-            foreach ($current as $v) {
-                if ((string) $v === $want) {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        if (is_bool($current)) {
-            return ($current ? '1' : '0') === $want;
-        }
-
-        if (is_scalar($current) || (is_object($current) && method_exists($current, '__toString'))) {
-            return (string) $current === $want;
-        }
-
-        // Fallback: not comparable
-        return false;
     }
 }
