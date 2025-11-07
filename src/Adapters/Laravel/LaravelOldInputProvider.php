@@ -2,22 +2,26 @@
 
 namespace Tetthys\Input\Adapters\Laravel;
 
+use Tetthys\Input\Contracts\ValueProvider;
 use Tetthys\Input\Providers\OldInputProvider;
+use Tetthys\Input\Support\Dot;
 
-final class LaravelOldInputProvider extends OldInputProvider
+final class LaravelOldInputProvider
 {
-    public static function make(): self
+    public static function make(): ValueProvider
     {
         $has = static function (string $name): bool {
             if (!function_exists('session')) return false;
-            $old = session()->get('_old_input', []);
-            return array_key_exists($name, $old);
+            $data = session()->get('_old_input', []);
+            return Dot::get($data, $name, null) !== null;
         };
+
         $get = static function (string $name, mixed $default = null): mixed {
             if (!function_exists('session')) return $default;
-            $old = session()->get('_old_input', []);
-            return $old[$name] ?? $default;
+            $data = session()->get('_old_input', []);
+            return Dot::get($data, $name, $default);
         };
-        return parent::from($has, $get);
+
+        return OldInputProvider::from($has, $get);
     }
 }

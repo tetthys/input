@@ -12,6 +12,7 @@ final class InputContextFactory
         $resolver = (new ValueResolver())
             ->with(LaravelOldInputProvider::make())
             ->with(new LaravelRequestValueProvider());
+
         return new InputContext($resolver, errors: new LaravelErrorStore());
     }
 }
