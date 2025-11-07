@@ -9,11 +9,17 @@ final class LaravelOldInputProvider
 {
     public static function make(): ValueProvider
     {
-        $has = static fn(string $name): bool =>
-        function_exists('old') && old($name) !== null;
+        $has = static function (string $name): bool {
+            if (!function_exists('old')) return false;
+            $val = old($name);
+            return ($val !== null && $val !== '');
+        };
 
-        $get = static fn(string $name, mixed $default = null): mixed =>
-        function_exists('old') ? old($name, $default) : $default;
+        $get = static function (string $name, mixed $default = null): mixed {
+            if (!function_exists('old')) return $default;
+            $val = old($name, $default);
+            return ($val === '' || $val === null) ? $default : $val;
+        };
 
         return OldInputProvider::from($has, $get);
     }
