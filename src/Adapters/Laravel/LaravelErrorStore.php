@@ -18,6 +18,9 @@ final class LaravelErrorStore implements ErrorStore
     {
         if (!function_exists('session')) return [];
         $bag = session('errors');
-        return $bag?->get($name, []) ?? [];
+        $messages = $bag?->get($name, []) ?? [];
+
+        // Filter out empty messages
+        return array_values(array_filter($messages, fn($m) => trim((string) $m) !== ''));
     }
 }

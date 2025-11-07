@@ -9,12 +9,14 @@ final class LaravelRequestValueProvider implements ValueProvider
     public function has(string $name): bool
     {
         if (!function_exists('request')) return false;
-        return request()->has($name);
+        $val = request()->input($name);
+        return ($val !== null && trim((string) $val) !== '');
     }
 
     public function get(string $name, mixed $default = null): mixed
     {
         if (!function_exists('request')) return $default;
-        return request()->input($name, $default);
+        $val = request()->input($name, $default);
+        return ($val === null || trim((string) $val) === '') ? $default : $val;
     }
 }
