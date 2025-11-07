@@ -32,22 +32,42 @@ abstract class BaseInput
         return $this->ctx->errors?->get($this->name) ?? [];
     }
 
+    /**
+     * Resolve error class:
+     * - Use styler if present (null/empty => no class).
+     * - If single token and 'bem_block' exists, expand to "{block}--{token}".
+     * - If no styler, fallback to "is-invalid" with the same BEM rule.
+     */
     protected function errorClass(): ?string
     {
         if (!$this->hasError()) {
             return null;
         }
-        $messages = $this->errors();
 
-        // If a styler is provided, use it verbatim.
+        $messages = $this->errors();
+        $token = null;
+
         if ($this->ctx->styler !== null) {
-            $fromStyler = $this->ctx->styler->classFor($this->name, $messages);
-            // Respect null/empty => append nothing.
-            return ($fromStyler !== null && $fromStyler !== '') ? $fromStyler : null;
+            $token = $this->ctx->styler->classFor($this->name, $messages);
+            if ($token === null || $token === '') {
+                return null; // respect "no class"
+            }
+        } else {
+            $token = 'is-invalid';
         }
 
-        // No styler: fallback to default behavior
-        return 'is-invalid';
+        // If multiple classes are returned (space-separated), use as-is.
+        if (str_contains($token, ' ')) {
+            return $token;
+        }
+
+        // BEM expansion when a block hint is provided.
+        $block = $this->attrs['bem_block'] ?? null;
+        if ($block) {
+            return "{$block}--{$token}";
+        }
+
+        return $token;
     }
 
     abstract public function render(): string;
@@ -57,13 +77,17 @@ abstract class BaseInput
     {
         $all = array_merge($this->attrs, $extra);
         $parts = [];
-        foreach ($all as $k => $v) {
-            if ($v === true) {
-                $parts[] = htmlspecialchars((string)$k, ENT_QUOTES);
+        foreach ($all as $key => $val) {
+            if ($val === true) {
+                $parts[] = htmlspecialchars((string) $key, ENT_QUOTES);
                 continue;
             }
-            if ($v === false || $v === null) continue;
-            $parts[] = sprintf('%s="%s"', htmlspecialchars((string)$k, ENT_QUOTES), htmlspecialchars((string)$v, ENT_QUOTES));
+            if ($val === false || $val === null) continue;
+            $parts[] = sprintf(
+                '%s="%s"',
+                htmlspecialchars((string) $key, ENT_QUOTES),
+                htmlspecialchars((string) $val, ENT_QUOTES)
+            );
         }
         return $parts ? ' ' . implode(' ', $parts) : '';
     }
