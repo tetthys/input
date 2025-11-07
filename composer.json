@@ -27,7 +27,7 @@
   "extra": {
     "laravel": {
       "providers": [
-        "Tetthys\\Input\\Adapters\\Laravel\\ServiceProvider"
+        "Tetthys\\Input\\Adapters\\Laravel\\InputServiceProvider"
       ]
     }
   }
