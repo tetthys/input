@@ -10,7 +10,7 @@ final class ServiceProvider extends Base
     public function boot(): void
     {
         if (class_exists(Blade::class)) {
-            Blade::componentNamespace('Tetthys\\Input\\Adapters\\Laravel\\Components', 'tetinput');
+            Blade::componentNamespace('Tetthys\\Input\\Adapters\\Laravel\\Components', 'field');
         }
     }
 }
