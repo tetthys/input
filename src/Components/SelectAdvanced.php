@@ -40,6 +40,30 @@ final class SelectAdvanced extends BaseInput
         $attrs = array_merge($this->attrs, ['name' => $this->name, 'class' => $class ?: null]);
         $html = '<select' . $this->htmlAttrs($attrs) . ">\n";
 
+        $isMultiple = (bool)($this->attrs['multiple'] ?? false);
+
+        // --- Placeholder option (only when NOT multiple)
+        if (!$isMultiple && isset($this->attrs['placeholder'])) {
+            $phText   = (string)$this->attrs['placeholder'];
+            $phValue  = array_key_exists('placeholder_value', $this->attrs) ? (string)$this->attrs['placeholder_value'] : '';
+            $selectable = (bool)($this->attrs['placeholder_selectable'] ?? false);
+            $hidden     = (bool)($this->attrs['placeholder_hidden'] ?? false);
+
+            $sel = ($this->value === '' || $this->value === null) ? ' selected' : '';
+            $dis = $selectable ? '' : ' disabled';
+            $hid = $hidden ? ' hidden' : '';
+
+            $html .= sprintf(
+                '  <option value="%s"%s%s%s>%s</option>' . "\n",
+                htmlspecialchars($phValue, ENT_QUOTES),
+                $sel,
+                $dis,
+                $hid,
+                htmlspecialchars($phText, ENT_QUOTES)
+            );
+        }
+
+        // --- Options / Optgroups
         foreach ($this->options as $key => $item) {
             if (is_array($item) && array_key_exists('options', $item)) {
                 $label = htmlspecialchars((string)($item['label'] ?? $key), ENT_QUOTES);
@@ -60,6 +84,7 @@ final class SelectAdvanced extends BaseInput
                 $html .= "  <option value=\"{$val}\"{$sel}>{$lab}</option>\n";
             }
         }
+
         return $html . "</select>";
     }
 }
